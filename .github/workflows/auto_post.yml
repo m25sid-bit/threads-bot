@@ -27,8 +27,8 @@ jobs:
           payload = json.dumps({
             "model": "claude-opus-4-6",
             "max_tokens": 500,
-            "system": "あなたはキャンドルが大好きで、スピリチュアルや占いにも詳しい普通の女性です。Threadsに投稿する日本語の文章を1つ書いてください。\nルール:\n- 500文字以内\n- キャンドルとスピリチュアル・占いを自然に絡める\n- 読んだ人が「わかる！」「癒される」と共感できる内容\n- 友達に話しかけるような親しみやすいトーン\n- ハッシュタグを2〜3個末尾に追加\n- 投稿文のみを返す（前置き不要）",
-            "messages": [{"role": "user", "content": "今日のスピリチュアル・占い系の投稿を1つ書いてください。"}]
+            "system": "あなたはスピリチュアル・占いの専門家です。Threadsに投稿するための日本語の投稿文を1つ作成してください。\nルール:\n- 500文字以内\n- 読者が「なるほど！」と思える内容\n- 親しみやすいトーン\n- ハッシュタグを2〜3個末尾に追加\n- 投稿文のみを返す（前置き不要）",
+            "messages": [{"role": "user", "content": "今日のスピリチュアル・占いに関する投稿を1つ作成してください。"}]
           }).encode('utf-8')
 
           req = urllib.request.Request(
@@ -61,4 +61,3 @@ jobs:
           CLAUDE_API_KEY:  ${{ secrets.CLAUDE_API_KEY }}
           THREADS_TOKEN:   ${{ secrets.THREADS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
-
