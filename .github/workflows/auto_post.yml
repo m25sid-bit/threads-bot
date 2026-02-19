@@ -2,10 +2,10 @@ name: Threads 自動投稿
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 日本時間 09:00
-    - cron: '0 6 * * *'   # 日本時間 15:00
-    - cron: '0 12 * * *'  # 日本時間 21:00
-  workflow_dispatch: # 手動実行ボタンも追加
+    - cron: '17 0 * * *'   # 日本時間 09:17
+    - cron: '43 5 * * *'   # 日本時間 14:43
+    - cron: '28 11 * * *'  # 日本時間 20:28
+  workflow_dispatch:
 
 jobs:
   post:
@@ -23,22 +23,20 @@ jobs:
           CLAUDE_API_KEY  = os.environ['CLAUDE_API_KEY']
           THREADS_TOKEN   = os.environ['THREADS_TOKEN']
           THREADS_USER_ID = os.environ['THREADS_USER_ID']
-          GENRE           = os.environ.get('GENRE', 'テクノロジー・AI')
 
-          # 1. Claude APIで投稿文を生成
           payload = json.dumps({
             "model": "claude-opus-4-6",
-            "max_tokens": 500,
-            "system": f"あなたは{GENRE}が大好きな普通の人です。Threadsに投稿する日本語の文章を1つ書いてください。\nルール:\n- 7行以内\n- AIっぽくない、人間らしい自然な口調\n- 友達に話しかけるような砕けた感じ\n- 難しい言葉は使わない\n- ハッシュタグを2〜3個末尾に追加\n- 投稿文のみを返す",
-            "messages": [{"role": "user", "content": f"{GENRE}に関する投稿を1つ作成してください。"}]
-          }).encode()
+            "max_tokens": 300,
+            "system": "あなたはキャンドルが大好きで、スピリチュアルや占いにも詳しい普通の女性です。Threadsに投稿する日本語の文章を1つ書いてください。\nルール:\n- 7行以内\n- キャンドルとスピリチュアル・占いを自然に絡める\n- 読んだ人が「わかる！」「癒される」と共感できる内容\n- 友達に話しかけるような砕けた口調\n- 難しいスピリチュアル用語は使わない\n- 押しつけがましくない、さりげない雰囲気\n- ハッシュタグを3個末尾に追加\n- 投稿文のみを返す（前置き不要）",
+            "messages": [{"role": "user", "content": "今日のスピリチュアル・占い系の投稿を1つ書いてください。"}]
+          }).encode('utf-8')
 
           req = urllib.request.Request(
             'https://api.anthropic.com/v1/messages',
             data=payload,
             headers={
               'Content-Type': 'application/json',
-              'x-api-key': CLAUDE_API_KEY,
+              'x-api-key': CLAUDE_API_KEY.strip(),
               'anthropic-version': '2023-06-01'
             }
           )
@@ -46,17 +44,15 @@ jobs:
           text = res['content'][0]['text'].strip()
           print(f"生成された投稿文:\n{text}")
 
-          # 2. Threadsにコンテナ作成
-          base = f"https://graph.threads.net/v1.0/{THREADS_USER_ID}"
-          params = urllib.parse.urlencode({"media_type": "TEXT", "text": text, "access_token": THREADS_TOKEN})
+          base = f"https://graph.threads.net/v1.0/{THREADS_USER_ID.strip()}"
+          params = urllib.parse.urlencode({"media_type": "TEXT", "text": text, "access_token": THREADS_TOKEN.strip()})
           req2 = urllib.request.Request(f"{base}/threads?{params}", method='POST')
           container = json.loads(urllib.request.urlopen(req2).read())
           print(f"コンテナID: {container['id']}")
 
           time.sleep(3)
 
-          # 3. 公開
-          params2 = urllib.parse.urlencode({"creation_id": container['id'], "access_token": THREADS_TOKEN})
+          params2 = urllib.parse.urlencode({"creation_id": container['id'], "access_token": THREADS_TOKEN.strip()})
           req3 = urllib.request.Request(f"{base}/threads_publish?{params2}", method='POST')
           result = json.loads(urllib.request.urlopen(req3).read())
           print(f"✅ 投稿完了！ Post ID: {result['id']}")
@@ -65,4 +61,4 @@ jobs:
           CLAUDE_API_KEY:  ${{ secrets.CLAUDE_API_KEY }}
           THREADS_TOKEN:   ${{ secrets.THREADS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
-          GENRE:           ${{ secrets.GENRE }}
+
